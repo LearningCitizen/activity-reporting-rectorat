@@ -10,7 +10,6 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
 
 import static com.jhippolyte.ActivityReportingConstantes.AND;
 import static com.jhippolyte.ActivityReportingConstantes.AUTHOR_USERNAME_FILTER;
@@ -39,7 +38,7 @@ public class ActivityReportingService {
      * @param startDate
      * @return
      */
-    public List<String> getAllMergeRequestsByUserInGroup(String user, String privateToken, String gitlabGroup, String gitLabUrl, String startDate) {
+    public String getAllMergeRequestsByUserInGroup(String user, String privateToken, String gitlabGroup, String gitLabUrl, String startDate) {
         try {
             logger.info("Building the request to get merge request - user " + user + " group " + gitlabGroup + " url " + gitLabUrl);
             HttpRequest getMRrequest = HttpRequest.newBuilder()
@@ -49,6 +48,7 @@ public class ActivityReportingService {
                     .build();
             HttpResponse<String> response = httpClient.send(getMRrequest, HttpResponse.BodyHandlers.ofString());
             logger.info(response.body());
+            return response.body();
         } catch (URISyntaxException | IOException | InterruptedException e) {
             e.printStackTrace();
         }

@@ -30,7 +30,7 @@ public class ActivityReportingApplication {
     CommandLineRunner run() {
         return (args) -> {
             LOGGER.info("Activity Reporting started");
-            activityReportingService.getAllMergeRequestsByUserInGroup(gitlabUser, privateToken, gitlabGroup, gitLabUrl, startDate);
+            String response = activityReportingService.getAllMergeRequestsByUserInGroup(gitlabUser, privateToken, gitlabGroup, gitLabUrl, startDate);
         };
     }
 
