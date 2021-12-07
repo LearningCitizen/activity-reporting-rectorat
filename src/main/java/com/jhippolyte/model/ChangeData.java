@@ -6,17 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MergeRequestData {
-    private String source_branch;
-    private String merge_commit_sha;
-    private List<ChangeData> changes;
-    private String title;
-
+public class ChangeData {
+    private String new_path;
+    private boolean new_file;
 }
