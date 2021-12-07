@@ -13,6 +13,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <spring.boot.version>2.5.5</spring.boot.version>
         <jackson.version>2.13.0</jackson.version>
+        <lombok.version>1.18.20</lombok.version>
     </properties>
 
     <dependencies>
@@ -36,6 +37,11 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
         </dependency>
     </dependencies>
 </project>
