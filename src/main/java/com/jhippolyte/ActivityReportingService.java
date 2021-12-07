@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jhippolyte.model.MergeRequestChangesParam;
+import com.jhippolyte.model.MergeRequestData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.jhippolyte.ActivityReportingConstantes.AND;
@@ -41,9 +43,10 @@ public class ActivityReportingService {
     public void generateReporting(String user, String privateToken, String gitlabGroup, String gitLabUrl, String startDate) {
         String jsonMergedMr = getAllMergeRequestsByUserInGroup(user, privateToken, gitlabGroup, gitLabUrl, startDate);
         List<MergeRequestChangesParam> mrParams = parsetoMergeRequestChangesParam(jsonMergedMr);
-        List<String> results = mrParams.stream().map(mrParam -> getAllMergeRequestsChanges(user, privateToken, gitLabUrl, mrParam))
-                .collect(Collectors.toList());
-        results.forEach(result -> logger.info("result :" + result));
+        List<MergeRequestData> mrDatas = mrParams.stream().map(mrParam -> getAllMergeRequestsChanges(user, privateToken, gitLabUrl, mrParam))
+                .map(jsonResponse -> parsetoMergeRequestData(jsonResponse)).filter(mrDdataOpt -> mrDdataOpt.isPresent())
+                .map(mrDdataOpt -> mrDdataOpt.get()).collect(Collectors.toList());
+        mrDatas.forEach(result -> logger.info("result :" + result));
     }
 
     /**
@@ -102,4 +105,15 @@ public class ActivityReportingService {
         }
         return null;
     }
+
+    public Optional<MergeRequestData> parsetoMergeRequestData(String jsonMergeChangesList) {
+        Optional<MergeRequestData> result = Optional.empty();
+        try {
+            result = Optional.of(mapper.readValue(jsonMergeChangesList, MergeRequestData.class));
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage());
+        }
+        return result;
+    }
+
 }
