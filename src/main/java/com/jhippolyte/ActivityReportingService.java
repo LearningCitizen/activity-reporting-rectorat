@@ -4,18 +4,25 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jhippolyte.model.MergeRequestChangesParam;
 import com.jhippolyte.model.MergeRequestData;
+import com.jhippolyte.model.ReportCsvLine;
+import com.jhippolyte.params.ActivityReportingParams;
+import com.jhippolyte.params.MergeRequestChangesParams;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,14 +43,15 @@ import static com.jhippolyte.ActivityReportingConstantes.PROJECT_PATH;
 @Service
 public class ActivityReportingService {
 
+    private static final String DEFAULT_ACTIVITY_REPORT = "./activity-report.csv";
     Logger logger = LoggerFactory.getLogger(ActivityReportingService.class);
     HttpClient httpClient = HttpClient.newHttpClient();
     ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    public void generateReporting(String user, String privateToken, String gitlabGroup, String gitLabUrl, String startDate) {
-        String jsonMergedMr = getAllMergeRequestsByUserInGroup(user, privateToken, gitlabGroup, gitLabUrl, startDate);
-        List<MergeRequestChangesParam> mrParams = parsetoMergeRequestChangesParam(jsonMergedMr);
-        List<MergeRequestData> mrDatas = mrParams.stream().map(mrParam -> getAllMergeRequestsChanges(user, privateToken, gitLabUrl, mrParam))
+    public void generateReporting(ActivityReportingParams params) {
+        String jsonMergedMr = getAllMergeRequestsByUserInGroup(params.getGitlabUser(), params.getPrivateToken(), params.getGitlabGroup(), params.getGitLabUrl(), params.getStartDate());
+        List<MergeRequestChangesParams> mrParams = parsetoMergeRequestChangesParam(jsonMergedMr);
+        List<MergeRequestData> mrDatas = mrParams.stream().map(mrParam -> getAllMergeRequestsChanges(params.getGitlabUser(), params.getPrivateToken(), params.getGitLabUrl(), mrParam))
                 .map(jsonResponse -> parsetoMergeRequestData(jsonResponse)).filter(mrDdataOpt -> mrDdataOpt.isPresent())
                 .map(mrDdataOpt -> mrDdataOpt.get()).collect(Collectors.toList());
         mrDatas.forEach(result -> logger.info("result :" + result));
@@ -78,10 +86,10 @@ public class ActivityReportingService {
         return null;
     }
 
-    public List<MergeRequestChangesParam> parsetoMergeRequestChangesParam(String jsonMergeRequestsList) {
-        List<MergeRequestChangesParam> result = new ArrayList<MergeRequestChangesParam>();
+    public List<MergeRequestChangesParams> parsetoMergeRequestChangesParam(String jsonMergeRequestsList) {
+        List<MergeRequestChangesParams> result = new ArrayList<MergeRequestChangesParams>();
         try {
-            result.addAll(mapper.readValue(jsonMergeRequestsList, new TypeReference<List<MergeRequestChangesParam>>() {
+            result.addAll(mapper.readValue(jsonMergeRequestsList, new TypeReference<List<MergeRequestChangesParams>>() {
             }));
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage());
@@ -89,7 +97,7 @@ public class ActivityReportingService {
         return result;
     }
 
-    public String getAllMergeRequestsChanges(String user, String privateToken, String gitLabUrl, MergeRequestChangesParam mrChangesParam) {
+    public String getAllMergeRequestsChanges(String user, String privateToken, String gitLabUrl, MergeRequestChangesParams mrChangesParam) {
         try {
             logger.info("Building the request to get merge request changes - user " + user + " mrParam " + mrChangesParam + " url " + gitLabUrl);
             HttpRequest getMRrequest = HttpRequest.newBuilder()
@@ -116,4 +124,12 @@ public class ActivityReportingService {
         return result;
     }
 
+    public void generateCsvReport(List<MergeRequestData> mrDta, String dev) {
+        try {
+            BufferedWriter writer = Files.newBufferedWriter(Paths.get(DEFAULT_ACTIVITY_REPORT));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(ReportCsvLine.HEADERS));
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+    }
 }

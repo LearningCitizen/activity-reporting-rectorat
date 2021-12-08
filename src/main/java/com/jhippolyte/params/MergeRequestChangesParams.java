@@ -1,4 +1,4 @@
-package com.jhippolyte.model;
+package com.jhippolyte.params;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MergeRequestChangesParam {
+public class MergeRequestChangesParams {
     /**
      * Project ID
      */

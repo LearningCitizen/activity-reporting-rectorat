@@ -1,6 +1,6 @@
 package com.jhippolyte;
 
-import com.jhippolyte.model.MergeRequestChangesParam;
+import com.jhippolyte.params.ActivityReportingParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +19,8 @@ public class ActivityReportingApplication {
     Logger LOGGER = LoggerFactory.getLogger(ActivityReportingApplication.class);
     @Autowired
     ActivityReportingService activityReportingService;
-//    private String gitlabUser = "aUser";
-//    private String privateToken = "myPrivateToken";
+    //    private String gitlabUser = "mayra-cabrera";
+//    private String privateToken = "glpat-J33PHL-dgy3ma7sM9xEv";
 //    private String gitlabGroup = "9970";
 //    private String gitLabUrl = "https://gitlab.com/api/v4";
 //    private String startDate = "2021-12-01T00:00:00Z";
@@ -29,6 +29,7 @@ public class ActivityReportingApplication {
     private String gitlabGroup = DIAPASON_GITLAB_ID;
     private String gitLabUrl = DIAPASON_GITLAB_URL_API;
     private String startDate = "2021-12-01T00:00:00Z";
+    private String dev = "jh";
 
     public static void main(String[] args) {
         ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(ActivityReportingApplication.class);
@@ -39,7 +40,9 @@ public class ActivityReportingApplication {
     CommandLineRunner run() {
         return (args) -> {
             LOGGER.info("Activity Reporting started");
-            activityReportingService.generateReporting(gitlabUser, privateToken, gitlabGroup, gitLabUrl, startDate);
+            ActivityReportingParams activityReportingParams = ActivityReportingParams.builder().gitlabGroup(gitlabGroup).gitLabUrl(gitLabUrl)
+                    .dev(dev).privateToken(privateToken).gitlabUser(gitlabUser).startDate(startDate).build();
+            activityReportingService.generateReporting(activityReportingParams);
             LOGGER.info("Activity Reporting started");
         };
     }
