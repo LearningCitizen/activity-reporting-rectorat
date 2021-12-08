@@ -14,6 +14,7 @@
         <spring.boot.version>2.5.5</spring.boot.version>
         <jackson.version>2.13.0</jackson.version>
         <lombok.version>1.18.20</lombok.version>
+        <commons-csv.version>1.5</commons-csv.version>
     </properties>
 
     <dependencies>
@@ -42,6 +43,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>${commons-csv.version}</version>
         </dependency>
     </dependencies>
 </project>

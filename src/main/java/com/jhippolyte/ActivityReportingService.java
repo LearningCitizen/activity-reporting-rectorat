@@ -55,6 +55,7 @@ public class ActivityReportingService {
                 .map(jsonResponse -> parsetoMergeRequestData(jsonResponse)).filter(mrDdataOpt -> mrDdataOpt.isPresent())
                 .map(mrDdataOpt -> mrDdataOpt.get()).collect(Collectors.toList());
         mrDatas.forEach(result -> logger.info("result :" + result));
+        generateCsvReport(mrDatas, params.getDev());
     }
 
     /**
@@ -125,9 +126,16 @@ public class ActivityReportingService {
     }
 
     public void generateCsvReport(List<MergeRequestData> mrDta, String dev) {
-        try {
-            BufferedWriter writer = Files.newBufferedWriter(Paths.get(DEFAULT_ACTIVITY_REPORT));
-            CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(ReportCsvLine.HEADERS));
+        logger.info("Generating csv report for dev : "+dev);
+        try (
+                BufferedWriter writer = Files.newBufferedWriter(Paths.get(DEFAULT_ACTIVITY_REPORT));
+                CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(ReportCsvLine.HEADERS))
+        ) {
+            csvPrinter.printRecord("1", "Sundar Pichai ♥", "CEO", "Google");
+            csvPrinter.printRecord("2", "Satya Nadella", "CEO", "Microsoft");
+            csvPrinter.printRecord("3", "Tim cook", "CEO", "Apple");
+
+            csvPrinter.flush();
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
