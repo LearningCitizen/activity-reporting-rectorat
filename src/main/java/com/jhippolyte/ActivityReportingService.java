@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -26,6 +27,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.jhippolyte.ActivityReportingConstantes.AND;
@@ -55,7 +58,8 @@ public class ActivityReportingService {
                 .map(jsonResponse -> parsetoMergeRequestData(jsonResponse)).filter(mrDdataOpt -> mrDdataOpt.isPresent())
                 .map(mrDdataOpt -> mrDdataOpt.get()).collect(Collectors.toList());
         mrDatas.forEach(result -> logger.info("result :" + result));
-        generateCsvReport(mrDatas, params.getDev());
+        List<ReportCsvLine> reportCsvLines = convertToReportCsvLines(mrDatas);
+        generateCsvReport(reportCsvLines, params.getDev());
     }
 
     /**
@@ -125,19 +129,58 @@ public class ActivityReportingService {
         return result;
     }
 
-    public void generateCsvReport(List<MergeRequestData> mrDta, String dev) {
-        logger.info("Generating csv report for dev : "+dev);
+    public List<ReportCsvLine> convertToReportCsvLines(List<MergeRequestData> mrDatas) {
+        return mrDatas.stream().map(this::convertToReportCsvLine).collect(Collectors.toList());
+    }
+
+    public ReportCsvLine convertToReportCsvLine(MergeRequestData mrData) {
+        ReportCsvLine result = new ReportCsvLine();
+        result.setCarteJira(mrData.getSource_branch());
+        result.setTache(mrData.getTitle());
+        result.setSousTache("");
+        result.setProjet(getProjetFromMrUrl(mrData.getWeb_url()));
+        result.setBranche(mrData.getMerge_commit_sha());
+        result.setLivrable(mrData.getChanges().stream().map(change -> change.getNew_path()).collect(Collectors.joining("\n")));
+        result.setTache("");
+        result.setTache("");
+        result.setTache("");
+        result.setTache("");
+        result.setTache("");
+        result.setTache("");
+        result.setTache("");
+        return result;
+    }
+
+    public String getProjetFromMrUrl(String mrUrl){
+        String[] result = mrUrl.split("/");
+        return result[result.length-4];
+    }
+    public void generateCsvReport(List<ReportCsvLine> repLines, String dev) {
+        logger.info("Generating csv report for dev : " + dev);
         try (
                 BufferedWriter writer = Files.newBufferedWriter(Paths.get(DEFAULT_ACTIVITY_REPORT));
-                CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(ReportCsvLine.HEADERS))
+                CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL.withHeader(ReportCsvLine.HEADERS))
         ) {
-            csvPrinter.printRecord("1", "Sundar Pichai ♥", "CEO", "Google");
-            csvPrinter.printRecord("2", "Satya Nadella", "CEO", "Microsoft");
-            csvPrinter.printRecord("3", "Tim cook", "CEO", "Apple");
-
+            repLines.forEach(line -> {
+                try {
+                    csvPrinter.printRecord(dev, line.getCarteJira(), line.getTache(), line.getSousTache(), line.getObm_c(), line.getObm_m(), line.getAcv_c(),line.getAcv_m(), line.getFlx_c(), line.getFlx_m(), line.getDoc_c(), line.getDoc_m(), line.getDao_c(), line.getDao_m(), line.getPgm_c(), line.getPgm_m(), line.getInt_c(), line.getInt_m(), line.getReq_c(), line.getReq_m());
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                }
+            });
             csvPrinter.flush();
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
+    }
+
+    private <T> Consumer<T> handlingConsumerWrapper(Consumer throwingConsumer) {
+        return i -> {
+            try {
+                throwingConsumer.accept(i);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+            }
+        };
     }
 }

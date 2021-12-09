@@ -18,5 +18,6 @@ public class MergeRequestData {
     private String merge_commit_sha;
     private List<ChangeData> changes;
     private String title;
+    private String web_url;
 
 }
