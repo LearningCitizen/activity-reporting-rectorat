@@ -137,20 +137,9 @@ public class ActivityReportingService {
         ReportCsvLine result = new ReportCsvLine();
         result.setCarteJira(mrData.getSource_branch());
         result.setTache(mrData.getTitle());
-        result.setSousTache("");
         result.setProjet(getProjetFromMrUrl(mrData.getWeb_url()));
         result.setBranche(mrData.getMerge_commit_sha());
         result.setProjet(getProjetFromMrUrl(mrData.getWeb_url()));
-        result.setAcv_c("");
-        result.setAcv_m("");
-        result.setFlx_c("");
-        result.setFlx_m("");
-        result.setObm_c("");
-        result.setObm_m("");
-        result.setReq_c("");
-        result.setReq_m("");
-        result.setDoc_c("");
-        result.setDoc_m("");
         processChanges(result, mrData.getChanges());
         return result;
     }

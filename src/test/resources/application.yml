@@ -1,0 +1,4 @@
+## Spring configuration
+spring:
+  profiles:
+    active: test
