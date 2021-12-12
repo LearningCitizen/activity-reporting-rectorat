@@ -1,4 +1,4 @@
-package com.jhippolyte;
+package com.jhippolyte.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -36,6 +36,7 @@ import static com.jhippolyte.ActivityReportingConstantes.AND;
 import static com.jhippolyte.ActivityReportingConstantes.AUTHOR_USERNAME_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.CHANGES_URI;
 import static com.jhippolyte.ActivityReportingConstantes.CREATED_AFTER_FILTER;
+import static com.jhippolyte.ActivityReportingConstantes.CREATED_BEFORE_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.GROUP_PATH;
 import static com.jhippolyte.ActivityReportingConstantes.MERGED_STATE_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.MERGE_REQUESTS_URI;
@@ -54,7 +55,7 @@ public class ActivityReportingService {
     ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public void generateReporting(ActivityReportingParams params) {
-        String jsonMergedMr = getAllMergeRequestsByUserInGroup(params.getGitlabUser(), params.getPrivateToken(), params.getGitlabGroup(), params.getGitLabUrl(), params.getStartDate());
+        String jsonMergedMr = getAllMergeRequestsByUserInGroup(params);
         List<MergeRequestChangesParams> mrParams = parsetoMergeRequestChangesParam(jsonMergedMr);
         List<MergeRequestData> mrDatas = mrParams.stream().map(mrParam -> getAllMergeRequestsChanges(params.getGitlabUser(), params.getPrivateToken(), params.getGitLabUrl(), mrParam))
                 .map(jsonResponse -> parsetoMergeRequestData(jsonResponse)).filter(mrDdataOpt -> mrDdataOpt.isPresent())
@@ -67,21 +68,18 @@ public class ActivityReportingService {
     /**
      * Get All the merged merge requests from author created after a date.
      * <p>
-     * Example : GET https://gitlab.com/api/v4/groups/9970/merge_requests?state=merged&created_after=2021-12-01T00:00:00Z&author_username=afontaine
-     *
-     * @param user
-     * @param privateToken
-     * @param gitlabGroup
-     * @param gitLabUrl
-     * @param startDate
+     * Example : GET https://gitlab.com/api/v4/groups/9970/merge_requests?state=merged&created_after=2021-12-01T00:00:00Z&created_before=2021-12-29T23:59:59Z&author_username=afontaine
+     * @param params
      * @return
      */
-    public String getAllMergeRequestsByUserInGroup(String user, String privateToken, String gitlabGroup, String gitLabUrl, String startDate) {
+    public String getAllMergeRequestsByUserInGroup(ActivityReportingParams params) {
         try {
-            logger.info("Building the request to get merge request - user " + user + " group " + gitlabGroup + " url " + gitLabUrl);
+            logger.info("Building the request to get merge request - user " + params.getGitlabUser() + " group " + params.getGitlabGroup() + " url " + params.getGitLabUrl());
             HttpRequest getMRrequest = HttpRequest.newBuilder()
-                    .uri(new URI(gitLabUrl + String.format(GROUP_PATH, gitlabGroup) + MERGE_REQUESTS_URI + PARAM_OP + MERGED_STATE_FILTER + AND + String.format(AUTHOR_USERNAME_FILTER, user) + AND + String.format(CREATED_AFTER_FILTER, startDate)))
-                    .headers(PRIVATE_TOKEN_HEADER, privateToken)
+                    .uri(new URI(params.getGitLabUrl() + String.format(GROUP_PATH, params.getGitlabGroup()) +
+                            MERGE_REQUESTS_URI + PARAM_OP + MERGED_STATE_FILTER + AND + String.format(AUTHOR_USERNAME_FILTER, params.getGitlabUser()) +
+                            AND + String.format(CREATED_AFTER_FILTER, params.getStartDate()) + AND + String.format(CREATED_BEFORE_FILTER, params.getEndDate())))
+                    .headers(PRIVATE_TOKEN_HEADER, params.getPrivateToken())
                     .GET()
                     .build();
             HttpResponse<String> response = httpClient.send(getMRrequest, HttpResponse.BodyHandlers.ofString());

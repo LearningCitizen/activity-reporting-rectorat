@@ -15,5 +15,6 @@ public class ActivityReportingParams {
     private String gitlabGroup;
     private String gitLabUrl;
     private String startDate;
+    private String endDate;
     private String dev;
 }
