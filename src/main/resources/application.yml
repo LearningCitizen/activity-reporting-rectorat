@@ -1,0 +1,7 @@
+## Spring configuration
+jasypt:
+  encryptor:
+    bean: encryptorBean
+
+gitlab:
+  token: ENC(UfsuGxGt//F66ROT4cj5V09u2D4ITB4Pnm14LCkrsxp/LtrqFgaJLXChpN0/Xu5UJk+y66ARqePmGf3Y05oL9A==)

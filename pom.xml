@@ -15,6 +15,7 @@
         <jackson.version>2.13.0</jackson.version>
         <lombok.version>1.18.20</lombok.version>
         <commons-csv.version>1.5</commons-csv.version>
+        <jasypt-spring-boot-starter.version>3.0.4</jasypt-spring-boot-starter.version>
     </properties>
 
     <dependencies>
@@ -34,6 +35,16 @@
             <version>${spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>${jasypt-spring-boot-starter.version}</version>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.atlassian.jira</groupId>-->
+<!--            <artifactId>jira-rest-java-client-core</artifactId>-->
+<!--            <version>5.2.2</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
