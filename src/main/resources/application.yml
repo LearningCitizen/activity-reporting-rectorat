@@ -4,4 +4,6 @@ jasypt:
     bean: encryptorBean
 
 gitlab:
+  groupId: ENC(QoZpa0d3svjqfokYngUYne99Tc8DBax0Ww5cXyk7CI+MyiIwkSoOTpfhyfOGMT6L)
   token: ENC(UfsuGxGt//F66ROT4cj5V09u2D4ITB4Pnm14LCkrsxp/LtrqFgaJLXChpN0/Xu5UJk+y66ARqePmGf3Y05oL9A==)
+  url: ENC(rVfL8K/qIlE/ZnqmjyxhTKt63Mf/y80bkGplsa+EXKiKAqQJpwY8qHy0nNSeqR25NoBVyFcauZGXyN/XSatqCFi75K9tgjCcFua7Caxd4w8=)
