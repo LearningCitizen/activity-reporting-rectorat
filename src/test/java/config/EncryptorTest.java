@@ -1,10 +1,11 @@
-package com.jhippolyte.service;
+package config;
 
+import org.assertj.core.api.Assertions;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.jasypt.iv.RandomIvGenerator;
 import org.junit.jupiter.api.Test;
 
-public class ClassTest {
+public class EncryptorTest {
 
     @Test
     public void should_encrypt(){
@@ -12,9 +13,9 @@ public class ClassTest {
         encryptor.setAlgorithm("PBEWithHmacSHA512AndAES_256");
         encryptor.setIvGenerator(new RandomIvGenerator());
         encryptor.setPoolSize(4);
-        encryptor.setPassword("WxR9XR+q2qV=s8+>HeT8qY%kr7L^6835si@^E3~@");
-        String encrypted = encryptor.encrypt("zzsvCzFVPGxdJr6uo_H_");
-        String decrypted = encryptor.decrypt(encrypted);
-        System.out.println("encrypted : "+encrypted+" "+decrypted);
+        encryptor.setPassword("test");
+        String data = "myData";
+        String encrypted = encryptor.encrypt(data);
+        Assertions.assertThat(encryptor.decrypt(encrypted)).isEqualTo(data);
     }
 }
