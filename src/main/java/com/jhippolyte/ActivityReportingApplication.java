@@ -28,9 +28,9 @@ public class ActivityReportingApplication {
     private String gitlabGroup;
     @Value("${gitlab.url}")
     private String gitLabUrl;
-    private String startDate = "2021-11-18T00:00:00Z";
+    private String startDate = "2021-11-20T00:00:00Z";
     private String endDate = "2021-12-09T23:59:00Z";
-    private String dev = "jh";
+    private String dev = "JH";
 
     public static void main(String[] args) {
         ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(ActivityReportingApplication.class);
