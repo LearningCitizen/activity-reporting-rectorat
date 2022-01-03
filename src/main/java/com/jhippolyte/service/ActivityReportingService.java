@@ -49,7 +49,7 @@ import static com.jhippolyte.ActivityReportingConstantes.PROJECT_PATH;
 public class ActivityReportingService {
 
     private static final String DEFAULT_ACTIVITY_REPORT = "./activity-report.csv";
-    private static List<String> filesToIgnore = Arrays.asList("(.*)changelog.md(.*)", "(.*)generated/api(.*)", "(.*)gitignore(.*)");
+    private static List<String> filesToIgnore = Arrays.asList("(.*)changelog.md(.*)", "(.*)generated/api(.*)", "(.*)gitignore(.*)", "(.*)package-lock.json(.*)");
     Logger logger = LoggerFactory.getLogger(ActivityReportingService.class);
     HttpClient httpClient = HttpClient.newHttpClient();
     ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
