@@ -42,12 +42,14 @@ import static com.jhippolyte.ActivityReportingConstantes.MERGED_STATE_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.MERGE_REQUESTS_URI;
 import static com.jhippolyte.ActivityReportingConstantes.MERGE_REQUEST_PATH;
 import static com.jhippolyte.ActivityReportingConstantes.PARAM_OP;
+import static com.jhippolyte.ActivityReportingConstantes.PER_PAGE_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.PRIVATE_TOKEN_HEADER;
 import static com.jhippolyte.ActivityReportingConstantes.PROJECT_PATH;
 
 @Service
 public class ActivityReportingService {
 
+    public static final String NUMBER_MR_PER_PAGE = "100";
     private static final String DEFAULT_ACTIVITY_REPORT = "./activity-report.csv";
     private static List<String> filesToIgnore = Arrays.asList("(.*)changelog.md(.*)", "(.*)generated/api(.*)", "(.*)gitignore(.*)", "(.*)package-lock.json(.*)");
     Logger logger = LoggerFactory.getLogger(ActivityReportingService.class);
@@ -69,6 +71,7 @@ public class ActivityReportingService {
      * Get All the merged merge requests from author created after a date.
      * <p>
      * Example : GET https://gitlab.com/api/v4/groups/9970/merge_requests?state=merged&created_after=2021-12-01T00:00:00Z&created_before=2021-12-29T23:59:59Z&author_username=afontaine
+     *
      * @param params
      * @return
      */
@@ -78,7 +81,7 @@ public class ActivityReportingService {
             HttpRequest getMRrequest = HttpRequest.newBuilder()
                     .uri(new URI(params.getGitLabUrl() + String.format(GROUP_PATH, params.getGitlabGroup()) +
                             MERGE_REQUESTS_URI + PARAM_OP + MERGED_STATE_FILTER + AND + String.format(AUTHOR_USERNAME_FILTER, params.getGitlabUser()) +
-                            AND + String.format(CREATED_AFTER_FILTER, params.getStartDate()) + AND + String.format(CREATED_BEFORE_FILTER, params.getEndDate())))
+                            AND + String.format(CREATED_AFTER_FILTER, params.getStartDate()) + AND + String.format(CREATED_BEFORE_FILTER, params.getEndDate()) + AND + String.format(PER_PAGE_FILTER, NUMBER_MR_PER_PAGE)))
                     .headers(PRIVATE_TOKEN_HEADER, params.getPrivateToken())
                     .GET()
                     .build();
