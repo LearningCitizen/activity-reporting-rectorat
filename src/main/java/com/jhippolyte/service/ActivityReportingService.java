@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ import static com.jhippolyte.ActivityReportingConstantes.GROUP_PATH;
 import static com.jhippolyte.ActivityReportingConstantes.MERGED_STATE_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.MERGE_REQUESTS_URI;
 import static com.jhippolyte.ActivityReportingConstantes.MERGE_REQUEST_PATH;
+import static com.jhippolyte.ActivityReportingConstantes.PAGE_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.PARAM_OP;
 import static com.jhippolyte.ActivityReportingConstantes.PER_PAGE_FILTER;
 import static com.jhippolyte.ActivityReportingConstantes.PRIVATE_TOKEN_HEADER;
@@ -51,14 +53,16 @@ public class ActivityReportingService {
 
     public static final String NUMBER_MR_PER_PAGE = "20";
     private static final String DEFAULT_ACTIVITY_REPORT = "./activity-report.csv";
+    public static final String NEXT_PAGE_HEADER = "x-next-page";
     private static List<String> filesToIgnore = Arrays.asList("(.*)changelog.md(.*)", "(.*)generated/api(.*)", "(.*)gitignore(.*)", "(.*)package-lock.json(.*)");
     Logger logger = LoggerFactory.getLogger(ActivityReportingService.class);
     HttpClient httpClient = HttpClient.newHttpClient();
     ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public void generateReporting(ActivityReportingParams params) {
-        String jsonMergedMr = getAllMergeRequestsByUserInGroup(params);
-        List<MergeRequestChangesParams> mrParams = parsetoMergeRequestChangesParam(jsonMergedMr);
+        List<String> jsonMergedMrs = getAllMergeRequestsByUserInGroup(params);
+        List<MergeRequestChangesParams> mrParams = jsonMergedMrs.stream().map(jsonMr -> parsetoMergeRequestChangesParam(jsonMr))
+                .flatMap(List::stream).collect(Collectors.toList());
         List<MergeRequestData> mrDatas = mrParams.stream().map(mrParam -> getAllMergeRequestsChanges(params.getGitlabUser(), params.getPrivateToken(), params.getGitLabUrl(), mrParam))
                 .map(jsonResponse -> parsetoMergeRequestData(jsonResponse)).filter(mrDdataOpt -> mrDdataOpt.isPresent())
                 .map(mrDdataOpt -> mrDdataOpt.get()).collect(Collectors.toList());
@@ -75,17 +79,21 @@ public class ActivityReportingService {
      * @param params
      * @return
      */
-    public String getAllMergeRequestsByUserInGroup(ActivityReportingParams params) {
+    public List<String> getAllMergeRequestsByUserInGroup(ActivityReportingParams params) {
         try {
             logger.info("Building the request to get merge request - user " + params.getGitlabUser() + " group " + params.getGitlabGroup() + " url " + params.getGitLabUrl());
-            boolean callGetMr = true;
+            List<String> userMr = new ArrayList<>();
             HttpResponse<String> response = null;
             String nextPage = "";
-            while (callGetMr){
+            while (Objects.isNull(response) || !nextPage.isEmpty()) {
                 response = getMrByUserInGroup(params);
+                userMr.add(response.body());
+                List<String> pages = response.headers().map().get(NEXT_PAGE_HEADER);
+                nextPage = pages.isEmpty() ? "" : pages.get(0);
+                params.setPage(nextPage);
             }
             logger.info(response.body());
-            return response.body();
+            return userMr;
         } catch (URISyntaxException | IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -93,10 +101,11 @@ public class ActivityReportingService {
     }
 
     public HttpResponse<String> getMrByUserInGroup(ActivityReportingParams params) throws URISyntaxException, IOException, InterruptedException {
-        HttpRequest getMRrequest = HttpRequest.newBuilder()
-                .uri(new URI(params.getGitLabUrl() + String.format(GROUP_PATH, params.getGitlabGroup()) +
-                        MERGE_REQUESTS_URI + PARAM_OP + MERGED_STATE_FILTER + AND + String.format(AUTHOR_USERNAME_FILTER, params.getGitlabUser()) +
-                        AND + String.format(CREATED_AFTER_FILTER, params.getStartDate()) + AND + String.format(CREATED_BEFORE_FILTER, params.getEndDate()) + AND + String.format(PER_PAGE_FILTER, NUMBER_MR_PER_PAGE)))
+        String urlMrRequest = params.getGitLabUrl() + String.format(GROUP_PATH, params.getGitlabGroup()) +
+                MERGE_REQUESTS_URI + PARAM_OP + MERGED_STATE_FILTER + AND + String.format(AUTHOR_USERNAME_FILTER, params.getGitlabUser()) +
+                AND + String.format(CREATED_AFTER_FILTER, params.getStartDate()) + AND + String.format(CREATED_BEFORE_FILTER, params.getEndDate()) + AND + String.format(PER_PAGE_FILTER, NUMBER_MR_PER_PAGE)
+                + AND + (Objects.nonNull(params.getPage()) ? String.format(PAGE_FILTER, params.getPage()) : "");
+        HttpRequest getMRrequest = HttpRequest.newBuilder().uri(new URI(urlMrRequest))
                 .headers(PRIVATE_TOKEN_HEADER, params.getPrivateToken())
                 .GET()
                 .build();
