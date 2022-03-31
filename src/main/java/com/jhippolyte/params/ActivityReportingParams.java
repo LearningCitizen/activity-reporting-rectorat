@@ -17,4 +17,5 @@ public class ActivityReportingParams {
     private String startDate;
     private String endDate;
     private String dev;
+    private String page;
 }
